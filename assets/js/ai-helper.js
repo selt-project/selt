@@ -1,8 +1,41 @@
 import { appUrl, copyToClipboard } from './utilities.js';
 import { getState, mutateStateSilently } from './state.js';
+import { AI_WORKER_URL } from './ai-config.js';
 
 const MAX_AI_PDF_SIZE = 3 * 1024 * 1024;
 let randomSuggestionsCache = null;
+let turnstileScriptPromise = null;
+let activeWidget = null;
+
+function loadTurnstile() {
+    if (window.turnstile) return Promise.resolve();
+    if (!turnstileScriptPromise) {
+        turnstileScriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+            script.onload = resolve;
+            script.onerror = () => reject(new Error('Security verification could not be loaded.'));
+            document.head.appendChild(script);
+        }).catch((error) => { turnstileScriptPromise = null; throw error; });
+    }
+    return turnstileScriptPromise;
+}
+
+async function prepareTurnstile(container) {
+    if (!AI_WORKER_URL) throw new Error('The AI helper is not configured yet.');
+    const widgetContainer = container.querySelector('#aiTurnstile');
+    if (!widgetContainer) throw new Error('Security verification could not be loaded.');
+    if (activeWidget !== null && window.turnstile) {
+        try { window.turnstile.remove(activeWidget); } catch { /* It may already be detached. */ }
+        activeWidget = null;
+    }
+    const [response] = await Promise.all([fetch(`${AI_WORKER_URL}/config`), loadTurnstile()]);
+    if (!response.ok) throw new Error('The AI helper is not available yet.');
+    const { siteKey } = await response.json();
+    if (!siteKey || !widgetContainer.isConnected) throw new Error('Security verification is not available.');
+    activeWidget = window.turnstile.render(widgetContainer, { sitekey: siteKey, action: 'generate' });
+    return activeWidget;
+}
 
 async function loadRandomSuggestions() {
     if (randomSuggestionsCache) {
@@ -120,11 +153,13 @@ function aiSuggestionTemplate() {
         <section class="rounded-lg border border-slate-200 bg-slate-50 p-3">
             <h3 class="text-sm font-bold text-slate-700">Get help from AI</h3>
             <p class="mt-1 text-xs leading-5 text-slate-500">Upload a PDF, type a topic, or use both to get short ideas that can be copied into board tiles.</p>
+            <p class="mt-1 text-xs leading-5 text-slate-500">Your topic and PDF are sent to Google Gemini. Do not include personal or sensitive information.</p>
             <div class="mt-3 space-y-3">
                 <textarea id="aiContextInput" rows="3" class="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Type what the board game is about."></textarea>
                 <label class="block text-sm font-semibold text-slate-700" for="aiPdfInput">Optional PDF</label>
                 <input id="aiPdfInput" type="file" accept="application/pdf,.pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700">
                 <p class="text-xs text-slate-500">PDF only. Max 3 MB.</p>
+                <div id="aiTurnstile"></div>
                 <button id="aiSuggestionButton" type="button" class="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">Generate 40 suggestions</button>
                 <p id="aiSuggestionMessage" class="text-sm text-slate-500"></p>
                 <div id="aiSuggestionResults" class="ai-suggestion-grid"></div>
@@ -164,6 +199,7 @@ function bindRandomSuggestionControls(container) {
 }
 
 function bindAiSuggestionControls(container) {
+    let widgetPromise = null;
     container.querySelector('#aiSuggestionButton')?.addEventListener('click', async (event) => {
         const button = event.currentTarget;
         const contextInput = container.querySelector('#aiContextInput');
@@ -178,6 +214,12 @@ function bindAiSuggestionControls(container) {
 
         if (!context && !pdf) {
             message.textContent = 'Add a topic description or upload a PDF.';
+            message.className = 'text-sm text-rose-600';
+            return;
+        }
+
+        if (context.length > 3000) {
+            message.textContent = 'Please use a topic description of at most 3,000 characters.';
             message.className = 'text-sm text-rose-600';
             return;
         }
@@ -198,8 +240,28 @@ function bindAiSuggestionControls(container) {
             }
         }
 
+        button.disabled = true;
+        message.textContent = 'Preparing security verification...';
+        try {
+            if (!widgetPromise) widgetPromise = prepareTurnstile(container);
+            const widget = await widgetPromise;
+            const token = window.turnstile.getResponse(widget);
+            if (!token) {
+                message.textContent = 'Please complete the security check and try again.';
+                button.disabled = false;
+                return;
+            }
+        } catch (error) {
+            widgetPromise = null;
+            message.textContent = error.message || 'Security verification could not be loaded.';
+            message.className = 'text-sm text-rose-600';
+            button.disabled = false;
+            return;
+        }
+
         const formData = new FormData();
         formData.append('context', context);
+        formData.append('turnstileToken', window.turnstile.getResponse(activeWidget));
         if (pdf) {
             formData.append('pdf', pdf);
         }
@@ -209,7 +271,7 @@ function bindAiSuggestionControls(container) {
         message.textContent = 'Generating tile-ready suggestions...';
 
         try {
-            const response = await fetch(appUrl('/api/ai-helper.php'), {
+            const response = await fetch(`${AI_WORKER_URL}/api/suggestions`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -239,6 +301,9 @@ function bindAiSuggestionControls(container) {
             message.textContent = error.message || 'Suggestions could not be generated. Please try again.';
             message.className = 'text-sm text-rose-600';
         } finally {
+            if (activeWidget !== null && window.turnstile) {
+                try { window.turnstile.reset(activeWidget); } catch { widgetPromise = null; }
+            }
             button.disabled = false;
             button.textContent = 'Generate 40 suggestions';
         }
