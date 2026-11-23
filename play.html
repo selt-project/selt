@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Play on a screen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        soft: '0 20px 60px rgba(15, 23, 42, 0.10)'
+                    }
+                }
+            }
+        };
+    </script>
+    <script>
+        window.APP_BASE_PATH = new URL('.', window.location.href).pathname.replace(/\/$/, '');
+    </script>
+    <link rel="stylesheet" href="./assets/css/app.css">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+<header class="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+        <a href="./index.html" class="site-brand flex items-center gap-3">
+            <span class="site-brand-logo grid h-10 w-10 place-items-center rounded-lg bg-emerald-600 text-lg font-black text-white">B</span>
+            <span class="site-brand-text">
+                <span class="site-brand-title block text-base font-bold leading-tight">Board Game Creator</span>
+                <span class="site-brand-subtitle block text-xs text-slate-500">Printable educational games</span>
+            </span>
+        </a>
+        <nav class="site-header-nav flex flex-wrap items-center justify-end gap-2 text-sm font-medium">
+            <a class="nav-link" href="./index.html">Board Game Creator</a>
+            <a class="nav-link-active" href="./play.html">Play on a Screen</a>
+            <a class="nav-link" href="./about.html">About the Project</a>
+        </nav>
+    </div>
+</header>
+<div class="mobile-screen-warning" role="status" aria-live="polite">
+    <span>This platform is designed for screens 768 pixels and wider. To get the best experience from the platform, please try using it on a larger screen.</span>
+</div>
+
+<main class="screen-play-layout mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <aside class="screen-controls-panel rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <h1 class="text-lg font-bold">Play on a screen</h1>
+        <p class="mt-1 text-sm text-slate-500">Upload a board PDF and move pawns on top of it.</p>
+
+        <label class="mt-5 block text-sm font-semibold text-slate-700" for="pdfUpload">Upload PDF</label>
+        <input id="pdfUpload" type="file" accept="application/pdf,.pdf" class="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700">
+        <p id="playStatus" class="mt-3 text-xs text-slate-500">No PDF loaded yet.</p>
+
+        <div class="mt-6">
+            <div class="flex items-center justify-between gap-3">
+                <label class="text-sm font-bold text-slate-700" for="pawnCountRange">How many pawns do you want?</label>
+                <output id="pawnCountOutput" class="grid h-8 min-w-8 place-items-center rounded-md bg-slate-900 px-2 text-sm font-black text-white" for="pawnCountRange">0</output>
+            </div>
+            <input id="pawnCountRange" type="range" min="0" max="20" value="0" step="1" class="mt-4 w-full accent-emerald-600">
+            <div class="mt-1 flex justify-between text-xs font-semibold text-slate-400">
+                <span>0</span>
+                <span>20</span>
+            </div>
+            <p class="mt-3 text-xs leading-5 text-slate-500">Pawns appear on the PDF viewer and can be dragged after placement.</p>
+        </div>
+    </aside>
+
+    <section class="screen-board-panel rounded-lg border border-slate-200 bg-white p-4 shadow-soft">
+        <div id="pdfPlayArea" class="play-area">
+            <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
+            <div id="pawnLayer" class="pawn-layer" aria-label="Pawn play layer"></div>
+            <div id="emptyPlayState" class="empty-play-state">
+                <span class="text-base font-semibold">Upload a PDF board game to start playing.</span>
+            </div>
+        </div>
+    </section>
+
+    <aside class="screen-dice-panel rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 class="text-lg font-bold">Dice roller</h2>
+        <div class="screen-dice-layout mt-5">
+            <div id="diceFace" class="dice-face">1</div>
+            <button id="rollDiceButton" type="button" class="dice-roll-button w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                Roll dice
+            </button>
+        </div>
+    </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script type="module" src="./assets/js/play-screen.js"></script>
+
+<footer class="border-t border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
+        Create, print, and play educational board games for classroom activities.
+    </div>
+</footer>
+</body>
+</html>

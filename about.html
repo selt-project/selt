@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>About the Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        soft: '0 20px 60px rgba(15, 23, 42, 0.10)'
+                    }
+                }
+            }
+        };
+    </script>
+    <script>
+        window.APP_BASE_PATH = new URL('.', window.location.href).pathname.replace(/\/$/, '');
+    </script>
+    <link rel="stylesheet" href="./assets/css/app.css">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+<header class="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+        <a href="./index.html" class="site-brand flex items-center gap-3">
+            <span class="site-brand-logo grid h-10 w-10 place-items-center rounded-lg bg-emerald-600 text-lg font-black text-white">B</span>
+            <span class="site-brand-text">
+                <span class="site-brand-title block text-base font-bold leading-tight">Board Game Creator</span>
+                <span class="site-brand-subtitle block text-xs text-slate-500">Printable educational games</span>
+            </span>
+        </a>
+        <nav class="site-header-nav flex flex-wrap items-center justify-end gap-2 text-sm font-medium">
+            <a class="nav-link" href="./index.html">Board Game Creator</a>
+            <a class="nav-link" href="./play.html">Play on a Screen</a>
+            <a class="nav-link-active" href="./about.html">About the Project</a>
+        </nav>
+    </div>
+</header>
+<div class="mobile-screen-warning" role="status" aria-live="polite">
+    <span>This platform is designed for screens 768 pixels and wider. To get the best experience from the platform, please try using it on a larger screen.</span>
+</div>
+
+<main class="about-page">
+    <section class="about-intro-band">
+        <div class="about-intro-grid">
+            <div class="about-copy">
+                <p class="about-eyebrow">TÜBİTAK 2209-A Student Research Project</p>
+                <h1>About the Project</h1>
+                <div class="about-project-title">
+                    <span>Official project title</span>
+                    <strong>Yabancı Dil Eğitiminde Yapay Zeka Destekli Masa Oyunu Oluşturma Platformu</strong>
+                </div>
+                <p>
+                    This platform was prepared within the scope of a TÜBİTAK 2209-A project accepted in the 2025 call. It was developed by Yusuf Terzi and Metin Torun under the academic guidance of Prof. Dr. Zübeyde Sinem Genç. The platform supports printable, AI-assisted board game creation for foreign language education.
+                </p>
+                <div class="about-meta-grid" aria-label="Project summary">
+                    <div>
+                        <span>Call year</span>
+                        <strong>2025</strong>
+                    </div>
+                    <div>
+                        <span>Program</span>
+                        <strong>2209-A</strong>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="institution-panel" aria-label="Institutional logos">
+                <p class="institution-panel-title">Prepared at Bursa Uludağ University</p>
+                <div class="institution-logo-list">
+                                            <figure class="institution-logo-item">
+                            <img src="./assets/images/logos/buu_logo.png" alt="Bursa Uludağ University logo">
+                            <figcaption>Bursa Uludağ University</figcaption>
+                        </figure>
+                                            <figure class="institution-logo-item">
+                            <img src="./assets/images/logos/buu_egitim_fak_logo.png" alt="Faculty of Education logo">
+                            <figcaption>Faculty of Education</figcaption>
+                        </figure>
+                                    </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="about-team-section">
+        <div class="about-section-heading">
+            <p>Project team</p>
+            <h2>Created by ELT students for language classrooms.</h2>
+        </div>
+
+        <div class="project-team-grid">
+                            <article class="project-person-card" tabindex="0" data-portrait-card>
+                    <div class="portrait-frame">
+                        <div class="portrait-stage">
+                            <img class="portrait-image portrait-comic" src="./assets/images/portraits/yusuf_terzi_portrait_comic.png" alt="Yusuf Terzi comic portrait">
+                            <img class="portrait-image portrait-real" src="./assets/images/portraits/yusuf_terzi_portrait.png" alt="Yusuf Terzi portrait">
+                        </div>
+                    </div>
+                    <div class="person-card-body">
+                        <p class="person-label">Project coordinator</p>
+                        <h3>Yusuf Terzi</h3>
+                        <p class="person-role">ELT 3rd-year student</p>
+                    </div>
+                </article>
+                            <article class="project-person-card" tabindex="0" data-portrait-card>
+                    <div class="portrait-frame">
+                        <div class="portrait-stage">
+                            <img class="portrait-image portrait-comic" src="./assets/images/portraits/metin_torun_portrait_comic.png" alt="Metin Torun comic portrait">
+                            <img class="portrait-image portrait-real" src="./assets/images/portraits/metin_torun_portrait.png" alt="Metin Torun portrait">
+                        </div>
+                    </div>
+                    <div class="person-card-body">
+                        <p class="person-label">Project partner</p>
+                        <h3>Metin Torun</h3>
+                        <p class="person-role">ELT 4th-year student</p>
+                    </div>
+                </article>
+                    </div>
+
+        <div class="advisor-row">
+            <article class="project-person-card advisor-card" tabindex="0" data-portrait-card>
+                <div class="portrait-frame">
+                    <div class="portrait-stage">
+                        <img class="portrait-image portrait-comic" src="./assets/images/portraits/prof_dr_zubeyde_sinem_genc_portrait_comic.png" alt="Prof. Dr. Zübeyde Sinem Genç comic portrait">
+                        <img class="portrait-image portrait-real" src="./assets/images/portraits/prof_dr_zubeyde_sinem_genc_portrait.png" alt="Prof. Dr. Zübeyde Sinem Genç portrait">
+                    </div>
+                </div>
+                <div class="person-card-body">
+                    <p class="person-label">Under academic guidance of</p>
+                    <h3>Prof. Dr. Zübeyde Sinem Genç</h3>
+                    <p class="person-role">Academic advisor</p>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+<script type="module" src="./assets/js/about.js"></script>
+
+<footer class="border-t border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
+        Create, print, and play educational board games for classroom activities.
+    </div>
+</footer>
+</body>
+</html>
