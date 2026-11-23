@@ -37,6 +37,29 @@ async function prepareTurnstile(container) {
     return activeWidget;
 }
 
+function waitForTurnstile(widget, container) {
+    return new Promise((resolve, reject) => {
+        const deadline = Date.now() + 60000;
+        const timer = window.setInterval(() => {
+            try {
+                if (!container.isConnected || Date.now() >= deadline) {
+                    window.clearInterval(timer);
+                    reject(new Error('Security verification timed out. Please try again.'));
+                    return;
+                }
+                const token = window.turnstile.getResponse(widget);
+                if (token) {
+                    window.clearInterval(timer);
+                    resolve(token);
+                }
+            } catch (error) {
+                window.clearInterval(timer);
+                reject(new Error('Security verification failed. Please try again.'));
+            }
+        }, 250);
+    });
+}
+
 async function loadRandomSuggestions() {
     if (randomSuggestionsCache) {
         return randomSuggestionsCache;
@@ -242,14 +265,15 @@ function bindAiSuggestionControls(container) {
 
         button.disabled = true;
         message.textContent = 'Preparing security verification...';
+        let widget;
+        let verificationToken;
         try {
             if (!widgetPromise) widgetPromise = prepareTurnstile(container);
-            const widget = await widgetPromise;
-            const token = window.turnstile.getResponse(widget);
-            if (!token) {
-                message.textContent = 'Please complete the security check and try again.';
-                button.disabled = false;
-                return;
+            widget = await widgetPromise;
+            verificationToken = window.turnstile.getResponse(widget);
+            if (!verificationToken) {
+                message.textContent = 'Complete the security check to continue.';
+                verificationToken = await waitForTurnstile(widget, container);
             }
         } catch (error) {
             widgetPromise = null;
@@ -261,7 +285,7 @@ function bindAiSuggestionControls(container) {
 
         const formData = new FormData();
         formData.append('context', context);
-        formData.append('turnstileToken', window.turnstile.getResponse(activeWidget));
+        formData.append('turnstileToken', verificationToken);
         if (pdf) {
             formData.append('pdf', pdf);
         }
@@ -301,8 +325,8 @@ function bindAiSuggestionControls(container) {
             message.textContent = error.message || 'Suggestions could not be generated. Please try again.';
             message.className = 'text-sm text-rose-600';
         } finally {
-            if (activeWidget !== null && window.turnstile) {
-                try { window.turnstile.reset(activeWidget); } catch { widgetPromise = null; }
+            if (widget !== undefined && window.turnstile) {
+                try { window.turnstile.reset(widget); } catch { widgetPromise = null; }
             }
             button.disabled = false;
             button.textContent = 'Generate 40 suggestions';
