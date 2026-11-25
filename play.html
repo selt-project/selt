@@ -26,7 +26,7 @@
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900">
 <header class="border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+    <div class="site-header-inner mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <a href="./index.html" class="site-brand flex items-center gap-3">
             <span class="site-brand-logo grid h-10 w-10 place-items-center rounded-lg bg-emerald-600 text-lg font-black text-white">B</span>
             <span class="site-brand-text">
@@ -34,25 +34,26 @@
                 <span class="site-brand-subtitle block text-xs text-slate-500">Printable educational games</span>
             </span>
         </a>
-        <nav class="site-header-nav flex flex-wrap items-center justify-end gap-2 text-sm font-medium">
+        <nav class="site-header-nav flex flex-wrap items-center gap-2 text-sm font-medium" aria-label="Main navigation">
             <a class="nav-link" href="./index.html">Board Game Creator</a>
-            <a class="nav-link-active" href="./play.html">Play on a Screen</a>
+            <a class="nav-link-active" href="./play.html" aria-current="page">Play on a Screen</a>
+            <a class="nav-link" href="./explore.html">Explore</a>
             <a class="nav-link" href="./about.html">About the Project</a>
         </nav>
     </div>
 </header>
 <div class="mobile-screen-warning" role="status" aria-live="polite">
-    <span>This platform is designed for screens 768 pixels and wider. To get the best experience from the platform, please try using it on a larger screen.</span>
+    <span>For more room on the board, use a laptop or desktop computer.</span>
 </div>
 
 <main class="screen-play-layout mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
     <aside class="screen-controls-panel rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <h1 class="text-lg font-bold">Play on a screen</h1>
-        <p class="mt-1 text-sm text-slate-500">Upload a board PDF and move pawns on top of it.</p>
+        <p class="mt-1 text-sm text-slate-600">Open your board PDF, add pawns, and take turns rolling the dice.</p>
 
-        <label class="mt-5 block text-sm font-semibold text-slate-700" for="pdfUpload">Upload PDF</label>
-        <input id="pdfUpload" type="file" accept="application/pdf,.pdf" class="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700">
-        <p id="playStatus" class="mt-3 text-xs text-slate-500">No PDF loaded yet.</p>
+        <label class="mt-5 block text-sm font-semibold text-slate-700" for="pdfUpload">Choose a board PDF</label>
+        <input id="pdfUpload" type="file" accept="application/pdf,.pdf" disabled class="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700 disabled:opacity-50">
+        <p id="playStatus" class="mt-3 text-sm text-slate-600" role="status"></p>
 
         <div class="mt-6">
             <div class="flex items-center justify-between gap-3">
@@ -64,7 +65,7 @@
                 <span>0</span>
                 <span>20</span>
             </div>
-            <p class="mt-3 text-xs leading-5 text-slate-500">Pawns appear on the PDF viewer and can be dragged after placement.</p>
+            <p class="mt-3 text-sm leading-5 text-slate-600">Drag the pawns to move them around the board.</p>
         </div>
     </aside>
 
@@ -73,7 +74,7 @@
             <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
             <div id="pawnLayer" class="pawn-layer" aria-label="Pawn play layer"></div>
             <div id="emptyPlayState" class="empty-play-state">
-                <span class="text-base font-semibold">Upload a PDF board game to start playing.</span>
+                <span class="text-base font-semibold">Choose a board PDF to start playing.</span>
             </div>
         </div>
     </section>

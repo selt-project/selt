@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Explore Board Games</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./assets/css/app.css">
+</head>
+<body class="explore-body min-h-screen bg-slate-100 text-slate-900">
+<header class="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="site-header-inner mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <a href="./index.html" class="site-brand flex items-center gap-3">
+            <span class="site-brand-logo grid h-10 w-10 place-items-center rounded-lg bg-emerald-600 text-lg font-black text-white">B</span>
+            <span class="site-brand-text">
+                <span class="site-brand-title block text-base font-bold leading-tight">Board Game Creator</span>
+                <span class="site-brand-subtitle block text-xs text-slate-500">Printable educational games</span>
+            </span>
+        </a>
+        <nav class="site-header-nav flex flex-wrap items-center gap-2 text-sm font-medium" aria-label="Main navigation">
+            <a class="nav-link" href="./index.html">Board Game Creator</a>
+            <a class="nav-link" href="./play.html">Play on a Screen</a>
+            <a class="nav-link-active" href="./explore.html" aria-current="page">Explore</a>
+            <a class="nav-link" href="./about.html">About the Project</a>
+        </nav>
+    </div>
+</header>
+
+<main class="explore-page">
+    <section class="explore-intro" aria-labelledby="exploreTitle">
+        <h1 id="exploreTitle">Explore board games</h1>
+        <p>Find language practice games to print for class or play on a screen.</p>
+    </section>
+
+    <section id="exploreEmpty" class="explore-empty" aria-labelledby="exploreStatus">
+        <div role="status">
+            <h2 id="exploreStatus">Loading games…</h2>
+        </div>
+        <div class="explore-actions">
+            <a href="./index.html" class="explore-primary">Create a board</a>
+            <a href="./play.html" class="explore-secondary">Play your own PDF</a>
+        </div>
+    </section>
+
+    <ul id="exploreGames" class="explore-games" aria-label="Ready-to-play games" hidden></ul>
+
+    <section class="explore-submission" aria-labelledby="exploreSubmissionTitle">
+        <h2 id="exploreSubmissionTitle">Share your board</h2>
+        <p>Want your board game featured here? Email your board PDF to <a href="mailto:seltproject@protonmail.com">seltproject@protonmail.com</a>.</p>
+    </section>
+</main>
+
+<footer class="border-t border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
+        Create, print, and play educational board games for classroom activities.
+    </div>
+</footer>
+<script type="module" src="./assets/js/explore.js"></script>
+</body>
+</html>

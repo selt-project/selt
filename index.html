@@ -26,7 +26,7 @@
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900">
 <header class="border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+    <div class="site-header-inner mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <a href="./index.html" class="site-brand flex items-center gap-3">
             <span class="site-brand-logo grid h-10 w-10 place-items-center rounded-lg bg-emerald-600 text-lg font-black text-white">B</span>
             <span class="site-brand-text">
@@ -34,34 +34,30 @@
                 <span class="site-brand-subtitle block text-xs text-slate-500">Printable educational games</span>
             </span>
         </a>
-        <nav class="site-header-nav flex flex-wrap items-center justify-end gap-2 text-sm font-medium">
-            <a class="nav-link-active" href="./index.html">Board Game Creator</a>
+        <nav class="site-header-nav flex flex-wrap items-center gap-2 text-sm font-medium" aria-label="Main navigation">
+            <a class="nav-link-active" href="./index.html" aria-current="page">Board Game Creator</a>
             <a class="nav-link" href="./play.html">Play on a Screen</a>
+            <a class="nav-link" href="./explore.html">Explore</a>
             <a class="nav-link" href="./about.html">About the Project</a>
         </nav>
     </div>
 </header>
 <div class="mobile-screen-warning" role="status" aria-live="polite">
-    <span>This platform is designed for screens 768 pixels and wider. To get the best experience from the platform, please try using it on a larger screen.</span>
+    <span>For easier board editing, use a laptop or desktop computer.</span>
 </div>
 
 <main id="creatorApp" class="creator-shell">
-    <aside class="creator-sidebar space-y-4">
+    <aside class="creator-sidebar">
         <section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h1 class="text-lg font-bold">Board Game Creator</h1>
-                    <p class="mt-1 text-sm text-slate-500">Design a printable A4 board game.</p>
-                </div>
-            </div>
+            <h1 class="text-base font-bold">Board Game Creator</h1>
             <button id="newBoardButton" type="button" class="mt-4 w-full rounded-md bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700">
-                New Board Game
+                Reset your board
             </button>
         </section>
 
         <section class="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
             <h2 class="px-1 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Steps</h2>
-            <div id="stepList" class="space-y-1"></div>
+            <div id="stepList"></div>
         </section>
 
         <section class="rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-sm">
@@ -73,7 +69,7 @@
         </section>
     </aside>
 
-    <section class="creator-workspace">
+    <section class="creator-workspace" aria-label="Board editor">
         <div class="creator-preview-panel">
             <section class="preview-card rounded-lg border border-slate-200 bg-white p-4 shadow-soft">
                 <div class="mb-3 flex items-center justify-between gap-3">
@@ -86,19 +82,16 @@
                     <div id="boardPreview" class="mx-auto"></div>
                 </div>
             </section>
-            <div id="previewHelperPanel" class="mt-4"></div>
+            <div id="previewHelperPanel" class="mt-4" tabindex="-1"></div>
         </div>
 
-        <div class="creator-tools-panel space-y-4">
+        <div class="creator-tools-panel">
             <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-200 px-4 py-3">
                     <h2 id="toolPanelTitle" class="text-base font-bold">Choose board format</h2>
                 </div>
                 <div id="toolPanel" class="p-4"></div>
-            </section>
-
-            <section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <div class="flex items-center justify-between gap-3">
+                <div class="creator-step-controls flex items-center justify-between gap-3 border-t border-slate-200 px-4 py-3" aria-label="Editor navigation">
                     <button id="previousStepButton" type="button" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Back</button>
                     <button id="nextStepButton" type="button" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Next</button>
                 </div>
