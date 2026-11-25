@@ -28,8 +28,8 @@ function updatePlacementSelectionUi(message = '') {
 
     messageElement.textContent = message || (
         selectedPlacementImageId
-            ? `Selected: ${selectedPlacementImageName}. Tap an active tile to place it.`
-            : 'Tap an image first, then tap an active tile to place it.'
+            ? `Selected: ${selectedPlacementImageName}. Tap a tile to place it.`
+            : 'Tap a picture, then tap the tile where you want it.'
     );
     messageElement.className = selectedPlacementImageId
         ? 'text-sm font-semibold text-blue-700'
@@ -56,9 +56,9 @@ export async function renderImageTools(container, state) {
     container.innerHTML = `
         <div class="space-y-4">
             <div class="space-y-2">
-                <p class="text-sm leading-6 text-slate-600">Add images to active tiles. Each tile can hold either one image or text.</p>
-                <p class="hidden text-sm leading-6 text-slate-600 lg:block">Drag an image onto an active tile to place it.</p>
-                <p class="rounded-md bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-800 lg:hidden">On screens under 1024px, tap an image first, then tap an active tile to place it.</p>
+                <p class="text-sm leading-6 text-slate-600">Each tile can hold one picture or text.</p>
+                <p class="hidden text-sm leading-6 text-slate-600 lg:block">Drag a picture onto a tile to place it.</p>
+                <p class="rounded-md bg-blue-50 px-3 py-2 text-sm leading-5 text-blue-800 lg:hidden">Tap a picture, then tap the tile where you want it.</p>
             </div>
             <label class="block rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm">
                 <span class="font-semibold text-slate-700">Upload images</span>

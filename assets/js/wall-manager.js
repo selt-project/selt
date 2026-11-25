@@ -4,8 +4,8 @@ import { areAdjacent, wallId, wallOrientation } from './utilities.js';
 export function renderWallTools(container) {
     container.innerHTML = `
         <div class="space-y-3">
-            <p class="text-sm leading-6 text-slate-600">Click the small handle between two neighboring active tiles to add or remove a wall.</p>
-            <p class="rounded-md bg-slate-100 px-3 py-2 text-xs leading-5 text-slate-600">Walls appear as "x x x x" marks and remain visible in all preview steps.</p>
+            <p class="text-sm leading-6 text-slate-600">Click the small button between two tiles to add or remove a wall.</p>
+            <p class="rounded-md bg-slate-100 px-3 py-2 text-sm leading-5 text-slate-600">The × marks show where players cannot move between tiles.</p>
         </div>
     `;
 }

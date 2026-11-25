@@ -53,12 +53,15 @@ const TILE_PATTERNS = [
     {
         id: 'golden-ladder',
         name: 'Golden Ladder',
-        note: 'A rising classroom route with rewards and setbacks.',
+        note: 'A winding path with 33 spaces between start and finish.',
         tiles: [
-            start('r11-c1'), road('r10-c1'), road('r9-c1'), good('r8-c1'), road('r8-c2'),
-            road('r8-c3'), warning('r7-c3'), road('r6-c3'), challenge('r5-c3'), road('r5-c4'),
-            good('r5-c5'), road('r4-c5'), road('r3-c5'), warning('r3-c6'), road('r3-c7'),
-            safe('r2-c7'), finish('r1-c7'),
+            start('r11-c1'), road('r11-c2'), good('r11-c3'), road('r11-c4'), challenge('r11-c5'),
+            road('r11-c6'), safe('r11-c7'), road('r11-c8'), warning('r11-c9'), road('r10-c9'),
+            good('r9-c9'), road('r9-c8'), road('r9-c7'), challenge('r9-c6'), road('r9-c5'),
+            pause('r9-c4'), road('r9-c3'), safe('r9-c2'), road('r9-c1'), warning('r8-c1'),
+            road('r7-c1'), good('r7-c2'), road('r7-c3'), challenge('r7-c4'), road('r7-c5'),
+            safe('r7-c6'), road('r7-c7'), pause('r7-c8'), road('r7-c9'), warning('r6-c9'),
+            road('r5-c9'), good('r5-c8'), road('r5-c7'), safe('r5-c6'), finish('r5-c5'),
         ],
     },
     {
@@ -88,12 +91,16 @@ const TILE_PATTERNS = [
     {
         id: 'spiral-classroom',
         name: 'Spiral Classroom',
-        note: 'A compact spiral with several mood changes.',
+        note: 'A spiral with 36 spaces between start and finish.',
         tiles: [
-            start('r9-c3'), road('r8-c3'), road('r7-c3'), good('r6-c3'), road('r5-c3'),
-            warning('r4-c3'), road('r3-c3'), road('r3-c4'), challenge('r3-c5'), road('r3-c6'),
-            good('r3-c7'), road('r4-c7'), warning('r5-c7'), road('r6-c7'), safe('r7-c7'),
-            road('r7-c6'), road('r7-c5'), challenge('r6-c5'), good('r5-c5'), finish('r5-c6'),
+            start('r11-c1'), road('r11-c2'), challenge('r11-c3'), road('r11-c4'), good('r11-c5'),
+            road('r11-c6'), warning('r11-c7'), road('r11-c8'), safe('r11-c9'), road('r10-c9'),
+            good('r9-c9'), road('r8-c9'), challenge('r7-c9'), road('r6-c9'), safe('r5-c9'),
+            road('r4-c9'), warning('r3-c9'), road('r3-c8'), good('r3-c7'), road('r3-c6'),
+            challenge('r3-c5'), road('r3-c4'), pause('r3-c3'), road('r3-c2'), safe('r4-c2'),
+            road('r5-c2'), warning('r6-c2'), road('r7-c2'), good('r8-c2'), road('r9-c2'),
+            challenge('r9-c3'), road('r9-c4'), safe('r9-c5'), road('r9-c6'), good('r9-c7'),
+            road('r8-c7'), warning('r7-c7'), finish('r6-c7'),
         ],
     },
 ];
@@ -122,20 +129,11 @@ function createTileFromPattern(definition) {
     };
 }
 
-function applyTilePattern(patternId) {
-    const pattern = TILE_PATTERNS.find((candidate) => candidate.id === patternId);
-
-    if (!pattern) {
-        return;
-    }
-
-    const state = getState();
-
-    if (hasTileProgress(state)) {
-        const confirmed = window.confirm('Applying a preset pattern will replace your current tiles, tile text, tile image assignments, and walls. Continue?');
-        if (!confirmed) {
-            return;
-        }
+function applyTilePattern(pattern) {
+    if (hasTileProgress(getState()) && !window.confirm(
+        'Replace this layout? All current tiles, the text and pictures on them, and all walls will be removed.',
+    )) {
+        return false;
     }
 
     mutateState((draft) => {
@@ -146,37 +144,35 @@ function applyTilePattern(patternId) {
             draft.tiles[definition.id] = createTileFromPattern(definition);
         });
 
-        draft.selectedTilePattern = pattern.id;
+        draft.appliedTilePattern = pattern.id;
         syncSpecialTiles(draft);
     });
+    return true;
 }
 
 export function renderBuildTools(container, state) {
     const selected = state.selectedTileTool || { type: 'color', color: TILE_COLORS[0] };
-    const defaultPattern = TILE_PATTERNS[0];
-    const selectedPattern = TILE_PATTERNS.find((pattern) => pattern.id === state.selectedTilePattern) || defaultPattern;
+    const selectedPattern = TILE_PATTERNS.find((pattern) => pattern.id === state.appliedTilePattern);
 
     container.innerHTML = `
         <div class="space-y-4">
             <section class="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <h3 class="text-sm font-semibold text-slate-800">Preset tile patterns</h3>
-                <p class="mt-1 text-sm leading-6 text-slate-600">Apply a ready-made path if you want a quick starting point. Presets place tiles only, not text or images.</p>
+                <p class="mt-1 text-sm leading-6 text-slate-600">Choose a ready-made path to lay out your tiles. You can add your own text and pictures in the next steps.</p>
                 <div class="mt-3 space-y-3">
-                    <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500" for="tilePatternSelect">Choose a pattern</label>
-                    <select id="tilePatternSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm">
+                    <label class="block text-sm font-semibold text-slate-700" for="tilePatternSelect">Choose a pattern</label>
+                    <select id="tilePatternSelect" class="tool-select w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" aria-describedby="tilePatternNote">
+                        <option value="" disabled ${selectedPattern ? '' : 'selected'}>No preset selected</option>
                         ${TILE_PATTERNS.map((pattern) => `
-                            <option value="${pattern.id}" ${pattern.id === selectedPattern.id ? 'selected' : ''}>${pattern.name}</option>
+                            <option value="${pattern.id}" ${pattern.id === selectedPattern?.id ? 'selected' : ''}>${pattern.name}</option>
                         `).join('')}
                     </select>
-                    <p id="tilePatternNote" class="text-xs leading-5 text-slate-500">${selectedPattern.note}</p>
-                    <button id="applyTilePatternButton" type="button" class="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
-                        Apply preset pattern
-                    </button>
+                    <p id="tilePatternNote" class="text-xs leading-5 text-slate-500" aria-live="polite">${selectedPattern?.note || 'The path appears as soon as you choose a pattern.'}</p>
                 </div>
             </section>
             <section class="rounded-lg border border-slate-200 bg-white p-3">
-                <h3 class="text-sm font-semibold text-slate-800">Manual tile tools</h3>
-                <p class="mt-1 text-sm leading-6 text-slate-600">Select a tile color, START, or FINISH, then click shadow tiles in the preview. Click an active tile again to remove it.</p>
+                <h3 class="text-sm font-semibold text-slate-800">Place your own tiles</h3>
+                <p class="mt-1 text-sm leading-6 text-slate-600">Pick a color, START, or FINISH. Click an empty square to place a tile. To remove a tile, click it again.</p>
                 <div class="tool-grid mt-3" aria-label="Tile color tools">
                     ${TILE_COLORS.map((color, index) => `
                         <button type="button" class="tool-button ${selected.type === 'color' && selected.color === color ? 'is-selected' : ''}" data-tile-tool="color" data-color="${color}" style="background:${color}" title="Tile color ${index + 1}">
@@ -195,20 +191,11 @@ export function renderBuildTools(container, state) {
     `;
 
     const patternSelect = container.querySelector('#tilePatternSelect');
-    const patternNote = container.querySelector('#tilePatternNote');
-
     patternSelect?.addEventListener('change', () => {
-        const pattern = TILE_PATTERNS.find((candidate) => candidate.id === patternSelect.value) || defaultPattern;
-        mutateStateSilently((draft) => {
-            draft.selectedTilePattern = pattern.id;
-        });
-        if (patternNote) {
-            patternNote.textContent = pattern.note;
+        const pattern = TILE_PATTERNS.find((candidate) => candidate.id === patternSelect.value);
+        if (pattern && !applyTilePattern(pattern)) {
+            patternSelect.value = selectedPattern?.id || '';
         }
-    });
-
-    container.querySelector('#applyTilePatternButton')?.addEventListener('click', () => {
-        applyTilePattern(patternSelect?.value || defaultPattern.id);
     });
 
     container.querySelectorAll('[data-tile-tool]').forEach((button) => {
@@ -253,6 +240,7 @@ export function renderBuildTools(container, state) {
 
 function removeTile(draft, tileId) {
     delete draft.tiles[tileId];
+    draft.appliedTilePattern = null;
 
     Object.keys(draft.walls || {}).forEach((id) => {
         const wall = draft.walls[id];
@@ -274,7 +262,7 @@ export function handleBuildTileClick(tileId) {
         const hasWalls = connectedWallIds(state, tileId).length > 0;
 
         if (hasText || hasImage || hasWalls) {
-            const confirmed = window.confirm('Removing this tile will also remove its text, image assignment, and connected walls. Continue?');
+            const confirmed = window.confirm('Remove this tile? Any text, picture, and walls attached to it will also be removed.');
             if (!confirmed) {
                 return;
             }
@@ -285,6 +273,7 @@ export function handleBuildTileClick(tileId) {
     }
 
     mutateState((draft) => {
+        draft.appliedTilePattern = null;
         const tool = draft.selectedTileTool || { type: 'color', color: TILE_COLORS[0] };
 
         if (tool.type === 'start') {

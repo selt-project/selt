@@ -178,6 +178,7 @@ export function fitTextElement(element) {
 
     const previousTransition = element.style.transition;
     const fixedLabel = element.classList.contains('is-fixed-label');
+    const minSize = Math.min(MIN_READABLE_FONT_SIZE, Math.max(4, width * 0.22));
 
     element.style.transition = 'none';
     element.style.width = '100%';
@@ -195,17 +196,17 @@ export function fitTextElement(element) {
     }
 
     const maxSize = Math.max(
-        MIN_READABLE_FONT_SIZE,
+        minSize,
         Math.min(58, height * (fixedLabel ? 0.62 : 0.52), width * (fixedLabel ? 0.42 : 0.5))
     );
-    let low = MIN_READABLE_FONT_SIZE;
+    let low = minSize;
     let high = maxSize;
-    let best = MIN_READABLE_FONT_SIZE;
+    let best = minSize;
 
     for (let index = 0; index < FONT_SEARCH_STEPS; index += 1) {
         const candidate = (low + high) / 2;
         const layout = calculateLayout(element, candidate, width, height, fixedLabel);
-        const canUseLayout = layout.fits && (!layout.forcedBreaks || candidate <= MIN_READABLE_FONT_SIZE);
+        const canUseLayout = layout.fits && (!layout.forcedBreaks || candidate <= minSize);
 
         if (canUseLayout) {
             best = candidate;
@@ -215,14 +216,14 @@ export function fitTextElement(element) {
         }
     }
 
-    best = Math.max(MIN_READABLE_FONT_SIZE, best - 0.35);
+    best = Math.max(minSize, best - 0.35);
     let finalLayout = calculateLayout(element, best, width, height, fixedLabel);
 
     element.style.fontSize = `${Math.floor(best * 10) / 10}px`;
     element.style.lineHeight = `${finalLayout.lineHeight}px`;
 
-    while (!domStillFits(element, frame) && best > MIN_READABLE_FONT_SIZE) {
-        best = Math.max(MIN_READABLE_FONT_SIZE, best - 0.25);
+    while (!domStillFits(element, frame) && best > minSize) {
+        best = Math.max(minSize, best - 0.25);
         finalLayout = calculateLayout(element, best, width, height, fixedLabel);
         element.style.fontSize = `${Math.floor(best * 10) / 10}px`;
         element.style.lineHeight = `${finalLayout.lineHeight}px`;

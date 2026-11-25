@@ -3,7 +3,7 @@ import { getState, mutateStateSilently } from './state.js';
 import { AI_WORKER_URL } from './ai-config.js';
 
 const MAX_AI_PDF_SIZE = 3 * 1024 * 1024;
-let randomSuggestionsCache = null;
+let randomSuggestionsPromise = null;
 let turnstileScriptPromise = null;
 let activeWidget = null;
 
@@ -60,21 +60,22 @@ function waitForTurnstile(widget, container) {
     });
 }
 
-async function loadRandomSuggestions() {
-    if (randomSuggestionsCache) {
-        return randomSuggestionsCache;
+function loadRandomSuggestions() {
+    if (!randomSuggestionsPromise) {
+        randomSuggestionsPromise = fetch(appUrl('/assets/data/random-suggestions.json'), {
+            headers: { Accept: 'application/json' },
+        }).then((response) => {
+            if (!response.ok) {
+                throw new Error('Random suggestions could not be loaded.');
+            }
+            return response.json();
+        }).catch((error) => {
+            randomSuggestionsPromise = null;
+            throw error;
+        });
     }
 
-    const response = await fetch(appUrl('/assets/data/random-suggestions.json'), {
-        headers: { Accept: 'application/json' },
-    });
-
-    if (!response.ok) {
-        throw new Error('Random suggestions could not be loaded.');
-    }
-
-    randomSuggestionsCache = await response.json();
-    return randomSuggestionsCache;
+    return randomSuggestionsPromise;
 }
 
 async function readJsonResponse(response) {
@@ -87,19 +88,6 @@ async function readJsonResponse(response) {
             ? 'The suggestions could not be read. Please try again.'
             : 'The suggestion request could not be completed. Please try again.');
     }
-}
-
-function typeText(element, text) {
-    element.value = '';
-    let index = 0;
-    const timer = window.setInterval(() => {
-        element.value += text.charAt(index);
-        index += 1;
-
-        if (index >= text.length) {
-            window.clearInterval(timer);
-        }
-    }, 22);
 }
 
 function suggestionRow(text) {
@@ -176,7 +164,7 @@ function aiSuggestionTemplate() {
         <section class="rounded-lg border border-slate-200 bg-slate-50 p-3">
             <h3 class="text-sm font-bold text-slate-700">Get help from AI</h3>
             <p class="mt-1 text-xs leading-5 text-slate-500">Upload a PDF, type a topic, or use both to get short ideas that can be copied into board tiles.</p>
-            <p class="mt-1 text-xs leading-5 text-slate-500">Your topic and PDF are sent to Google Gemini. Do not include personal or sensitive information.</p>
+            <p class="mt-1 text-xs leading-5 text-slate-500">Your topic and PDF are sent to Google Gemini or Cloudflare Workers AI. Do not include personal or sensitive information.</p>
             <div class="mt-3 space-y-3">
                 <textarea id="aiContextInput" rows="3" class="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Type what the board game is about."></textarea>
                 <label class="block text-sm font-semibold text-slate-700" for="aiPdfInput">Optional PDF</label>
@@ -194,14 +182,40 @@ function aiSuggestionTemplate() {
 function bindRandomSuggestionControls(container) {
     const randomOutput = container.querySelector('#randomSuggestionOutput');
     const randomMessage = container.querySelector('#randomSuggestionMessage');
+    let latestRoll = 0;
+    let typingTimer;
 
     container.querySelector('#randomSuggestionButton')?.addEventListener('click', async () => {
+        const roll = ++latestRoll;
+        window.clearInterval(typingTimer);
+        typingTimer = undefined;
+        randomOutput.value = '';
+        randomMessage.textContent = '';
+
         try {
             const suggestions = await loadRandomSuggestions();
+            if (roll !== latestRoll || !randomOutput.isConnected) {
+                return;
+            }
+
             const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)] || '';
-            typeText(randomOutput, suggestion);
-            randomMessage.textContent = '';
+            let index = 0;
+            typingTimer = window.setInterval(() => {
+                if (randomOutput.isConnected) {
+                    index += 1;
+                    randomOutput.value = suggestion.slice(0, index);
+                }
+
+                if (!randomOutput.isConnected || index >= suggestion.length) {
+                    window.clearInterval(typingTimer);
+                    typingTimer = undefined;
+                }
+            }, 22);
         } catch (error) {
+            if (roll !== latestRoll || !randomOutput.isConnected) {
+                return;
+            }
+
             randomMessage.textContent = error.message || 'A random suggestion could not be loaded.';
             randomMessage.className = 'mt-2 text-xs text-rose-600';
         }

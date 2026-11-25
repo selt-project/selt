@@ -4,6 +4,7 @@ import { scheduleTextFit } from './text-fit.js';
 
 const imageUrlCache = new Map();
 const backgroundUrlCache = new Map();
+const boardObservers = new WeakMap();
 
 export async function resolveImageUrl(state, imageId) {
     if (!imageId || !state.images?.[imageId]) {
@@ -97,12 +98,12 @@ async function createTileCell(state, row, column, options) {
     cell.tabIndex = 0;
 
     if (!isActive) {
-        cell.setAttribute('aria-label', `Inactive tile ${row}, ${column}`);
+        cell.setAttribute('aria-label', `Empty square, row ${row}, column ${column}`);
         return cell;
     }
 
     cell.style.backgroundColor = tile.color || '#fef08a';
-    cell.setAttribute('aria-label', `Active tile ${row}, ${column}`);
+    cell.setAttribute('aria-label', `Tile, row ${row}, column ${column}`);
 
     const content = document.createElement('div');
     const displayText = tile.type === 'start'
@@ -209,18 +210,6 @@ function positionWallOverlays(grid) {
     });
 }
 
-function bindWallPositioning(grid) {
-    const update = () => positionWallOverlays(grid);
-
-    update();
-    window.requestAnimationFrame(update);
-
-    if (window.ResizeObserver) {
-        const observer = new ResizeObserver(update);
-        observer.observe(grid);
-    }
-}
-
 function sizeGridToShell(grid, state) {
     const shell = grid.parentElement;
 
@@ -248,18 +237,23 @@ function sizeGridToShell(grid, state) {
     }
 }
 
-function bindGridSizing(grid, state) {
+function bindBoardLayout(container, page, grid, state) {
+    boardObservers.get(container)?.disconnect();
+
     const update = () => {
         sizeGridToShell(grid, state);
         positionWallOverlays(grid);
+        scheduleTextFit(page);
     };
 
     update();
-    window.requestAnimationFrame(update);
 
     if (window.ResizeObserver) {
         const observer = new ResizeObserver(update);
         observer.observe(grid.parentElement);
+        boardObservers.set(container, observer);
+    } else {
+        window.requestAnimationFrame(update);
     }
 }
 
@@ -302,6 +296,7 @@ export async function renderBoard(container, state, options = {}) {
     };
 
     if (!state.grid?.columns || !state.grid?.rows) {
+        boardObservers.get(container)?.disconnect();
         container.innerHTML = '';
         const empty = document.createElement('div');
         empty.className = 'board-preview-empty';
@@ -377,9 +372,7 @@ export async function renderBoard(container, state, options = {}) {
 
     container.innerHTML = '';
     container.appendChild(page);
-    bindGridSizing(grid, state);
-    bindWallPositioning(grid);
-    scheduleTextFit(page);
+    bindBoardLayout(container, page, grid, state);
 
     return page;
 }

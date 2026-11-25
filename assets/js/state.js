@@ -53,7 +53,7 @@ export function createDefaultState() {
             type: 'color',
             color: '#fef08a',
         },
-        selectedTilePattern: 'erzin-roads',
+        appliedTilePattern: null,
         selectedTextColor: '#111827',
         selectedTextCustomColor: '#111827',
         aiSuggestions: [],
@@ -98,7 +98,8 @@ function normalizeState(candidate) {
     });
     nextState.images[DEFAULT_IMAGE_ID] = { ...defaultImage };
     nextState.selectedTileTool = nextState.selectedTileTool || { type: 'color', color: '#fef08a' };
-    nextState.selectedTilePattern = nextState.selectedTilePattern || 'erzin-roads';
+    // Older saves tracked the dropdown choice before a pattern was applied.
+    delete nextState.selectedTilePattern;
     nextState.selectedTextColor = nextState.selectedTextColor || '#111827';
     nextState.selectedTextCustomColor = nextState.selectedTextCustomColor || (
         nextState.selectedTextColor && ![
@@ -212,7 +213,7 @@ export function resetPortraitBoard() {
         draft.boardTitleColor = '#0f172a';
         draft.creatorName = '';
         draft.creatorNameColor = '#0f172a';
-        draft.selectedTilePattern = 'erzin-roads';
+        draft.appliedTilePattern = null;
         draft.selectedTextColor = '#111827';
         draft.selectedTextCustomColor = '#111827';
         draft.aiSuggestions = [];

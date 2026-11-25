@@ -1,3 +1,5 @@
+import { loadExploreGames } from './game-library.js';
+
 const pdfUpload = document.querySelector('#pdfUpload');
 const playStatus = document.querySelector('#playStatus');
 const canvas = document.querySelector('#pdfCanvas');
@@ -41,7 +43,7 @@ if (window.pdfjsLib) {
 
 function setPlayStatus(message, isError = false) {
     playStatus.textContent = message;
-    playStatus.className = `mt-3 text-xs ${isError ? 'text-rose-600' : 'text-slate-500'}`;
+    playStatus.className = `mt-3 text-sm ${isError ? 'text-rose-700' : 'text-slate-600'}`;
 }
 
 function hasLoadedPdf() {
@@ -152,19 +154,19 @@ function setPawnCount(count) {
     renderPawns();
 
     if (!hasLoadedPdf() && nextCount > 0) {
-        setPlayStatus('Upload a PDF to show pawns on the board.');
+        setPlayStatus('Choose a board PDF to place your pawns.');
     }
 }
 
 async function renderPdf(file) {
     if (!window.pdfjsLib) {
-        setPlayStatus('PDF.js could not be loaded.', true);
+        setPlayStatus('The PDF viewer could not start. Refresh the page and try again.', true);
         return;
     }
 
     const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
     if (!isPdf) {
-        setPlayStatus('Please upload a PDF file.', true);
+        setPlayStatus('Please choose a PDF file.', true);
         return;
     }
 
@@ -197,7 +199,7 @@ async function renderPdf(file) {
 
     syncPawnLayerToCanvas();
     renderPawns();
-    setPlayStatus(`Loaded ${file.name}. Confirmed: one portrait page.`);
+    setPlayStatus(`Board ready: ${file.name}`);
 }
 
 function pointerPosition(event) {
@@ -254,13 +256,38 @@ pdfUpload?.addEventListener('change', async (event) => {
     }
 
     try {
-        setPlayStatus('Rendering PDF...');
+        setPlayStatus('Opening your board…');
         await renderPdf(file);
     } catch (error) {
         setPlayStatus(error.message || 'The PDF could not be rendered.', true);
         event.target.value = '';
     }
 });
+
+async function openExploreGame(gameId) {
+    pdfUpload.disabled = true;
+    setPlayStatus('Opening your board…');
+
+    try {
+        const games = await loadExploreGames();
+        const game = games.find((entry) => entry.id === gameId);
+        if (!game) {
+            setPlayStatus('This game is unavailable. You can still choose a board PDF.', true);
+            return;
+        }
+
+        const response = await fetch(game.pdfUrl);
+        if (!response.ok) {
+            throw new Error('Could not open the game PDF.');
+        }
+        const pdf = await response.blob();
+        await renderPdf(new File([pdf], game.fileName, { type: 'application/pdf' }));
+    } catch {
+        setPlayStatus('The game could not be opened. Try again or choose a board PDF.', true);
+    } finally {
+        pdfUpload.disabled = false;
+    }
+}
 
 pawnCountRange?.addEventListener('input', (event) => {
     setPawnCount(event.target.value);
@@ -303,3 +330,10 @@ rollDiceButton?.addEventListener('click', () => {
 });
 
 setPawnCount(0);
+
+const gameId = new URLSearchParams(window.location.search).get('game');
+if (gameId) {
+    openExploreGame(gameId);
+} else {
+    pdfUpload.disabled = false;
+}

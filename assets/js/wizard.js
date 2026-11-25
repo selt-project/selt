@@ -41,8 +41,7 @@ const TEXT_COLORS = [
     '#be185d',
     '#475569',
 ];
-const TITLE_COLORS = TEXT_COLORS;
-const CREATOR_COLORS = TEXT_COLORS;
+const CREDIT_COLORS = ['#0f172a', ...TEXT_COLORS.slice(1)];
 
 let elements = {};
 let renderVersion = 0;
@@ -60,7 +59,7 @@ function renderStepList(state) {
         const isActive = step.id === state.currentStep;
         const isDisabled = !canGoToStep(step.id);
         return `
-            <button type="button" data-step-id="${step.id}" class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition ${isActive ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'} ${isDisabled ? 'cursor-not-allowed opacity-40' : ''}" ${isDisabled ? 'disabled' : ''}>
+            <button type="button" data-step-id="${step.id}" ${isActive ? 'aria-current="step"' : ''} class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition ${isActive ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'} ${isDisabled ? 'cursor-not-allowed opacity-40' : ''}" ${isDisabled ? 'disabled' : ''}>
                 <span class="grid h-7 w-9 shrink-0 place-items-center rounded bg-white/20 text-xs font-black">${step.number}</span>
                 <span class="font-semibold">${step.label}</span>
             </button>
@@ -81,6 +80,7 @@ function renderNavigation(state) {
     const currentIndex = getCurrentStepIndex();
     elements.previousStepButton.disabled = currentIndex <= 0;
     elements.nextStepButton.disabled = currentIndex >= STEPS.length - 1;
+    elements.nextStepButton.hidden = elements.nextStepButton.disabled;
 
     elements.previousStepButton.classList.toggle('opacity-40', elements.previousStepButton.disabled);
     elements.nextStepButton.classList.toggle('opacity-40', elements.nextStepButton.disabled);
@@ -93,21 +93,22 @@ function renderPreviewMeta(state) {
 function renderOrientationTools(container, state) {
     container.innerHTML = `
         <div class="space-y-4">
-            <p class="text-sm leading-6 text-slate-600">Start by choosing the printable board format. Portrait boards use a 9 x 11 tile grid.</p>
-            <div class="grid gap-3 sm:grid-cols-2">
+            <div class="board-format-options grid gap-3">
                 <button type="button" data-start-portrait class="orientation-card is-selected">
                     <span class="block text-sm font-bold">Portrait board</span>
                     <span class="mt-1 block text-xs text-slate-500">9 columns x 11 rows</span>
                 </button>
                 <button type="button" class="orientation-card is-locked" disabled aria-disabled="true">
-                    <span class="flex items-center justify-between gap-3">
-                        <span class="text-sm font-bold">Landscape board</span>
-                        <span class="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600">Locked</span>
-                    </span>
+                    <span class="block text-sm font-bold">Landscape board</span>
                     <span class="mt-1 block text-xs text-slate-500">Coming soon</span>
                 </button>
             </div>
-            <p class="rounded-md bg-slate-100 px-3 py-2 text-xs leading-5 text-slate-600">Use New Board Game only when you want to clear this board and start fresh.</p>
+            <aside class="board-format-guide" aria-labelledby="boardFormatGuideTitle">
+                <h3 id="boardFormatGuideTitle">How to use this tool</h3>
+                <p>Design a board game for language practice. Create a path from START to FINISH and add questions or instructions to the tiles.</p>
+                <p>Players take turns rolling a die and follow the instructions on the tile they land on. They stay there if they complete it or go back to their previous tile if they cannot. The first player to reach FINISH wins.</p>
+                <p>Print your board as a PDF or play it on a screen with a digital die and movable pawns.</p>
+            </aside>
         </div>
     `;
 
@@ -173,8 +174,11 @@ function renderTextTools(container, state) {
 
     container.innerHTML = `
         <section>
-            <p class="text-sm leading-6 text-slate-600">Choose a text color, then click an active tile to edit text directly on it. A tile can hold either text or one image. START and FINISH tiles stay fixed.</p>
-            <p class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">For the best printed result, use standard English letters in tile text.</p>
+            <div class="text-step-actions">
+                <button id="aiIdeasButton" class="tool-action-link" type="button" aria-controls="previewHelperPanel">Get AI ideas for your tiles</button>
+            </div>
+            <p class="text-sm leading-6 text-slate-600">Pick a text color, then click a tile to write on it. Each tile can hold text or one picture. The START and FINISH labels stay fixed.</p>
+            <p class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">Use standard English letters for the best PDF results.</p>
             <div class="tool-grid mt-3" aria-label="Text color tools">
                 ${TEXT_COLORS.map((color, index) => `
                     <button type="button" class="tool-button ${selectedColor === color ? 'is-selected' : ''}" data-text-color="${color}" style="background:${color}; color:${color === '#ffffff' ? '#0f172a' : '#ffffff'}" title="Text color ${index + 1}">
@@ -189,6 +193,12 @@ function renderTextTools(container, state) {
         </section>
         <div id="textRandomSuggestionMenu" class="mt-4"></div>
     `;
+
+    container.querySelector('#aiIdeasButton').addEventListener('click', () => {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        elements.previewHelperPanel.focus({ preventScroll: true });
+        elements.previewHelperPanel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    });
 
     container.querySelectorAll('[data-text-color]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -227,6 +237,7 @@ function renderPreviewHelperForStep(state) {
         return;
     }
 
+    elements.previewHelperPanel.hidden = state.currentStep !== 'text';
     if (state.currentStep !== 'text') {
         elements.previewHelperPanel.innerHTML = '';
         elements.previewHelperPanel.dataset.helperStep = '';
@@ -265,7 +276,7 @@ function renderFinalizeTools(container, state) {
             customInput.value = color;
         }
         if (customLabel) {
-            customLabel.classList.toggle('is-selected', !TITLE_COLORS.includes(color));
+            customLabel.classList.toggle('is-selected', !CREDIT_COLORS.includes(color));
         }
 
         markSaved();
@@ -289,57 +300,57 @@ function renderFinalizeTools(container, state) {
             customInput.value = color;
         }
         if (customLabel) {
-            customLabel.classList.toggle('is-selected', !CREATOR_COLORS.includes(color));
+            customLabel.classList.toggle('is-selected', !CREDIT_COLORS.includes(color));
         }
 
         markSaved();
     };
 
     container.innerHTML = `
-        <div class="space-y-4">
-            <p class="text-sm leading-6 text-slate-600">Add the board title and an optional creator name before downloading the finished PDF.</p>
-            <section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="finalize-form">
+            <div class="finalize-fields">
                 <div>
                     <label class="block text-sm font-semibold text-slate-700" for="boardTitleInput">Board name</label>
                     <input id="boardTitleInput" type="text" value="${escapeHtml((state.boardTitle || '').slice(0, 90))}" maxlength="90" class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="My educational board game">
-                    <p class="mt-1 text-xs text-slate-500">Maximum 90 characters.</p>
                 </div>
-                <div class="mt-4">
-                    <h3 class="text-sm font-semibold text-slate-700">Board title color</h3>
-                    <div class="tool-grid mt-3" aria-label="Board title color tools">
-                        ${TITLE_COLORS.map((color, index) => `
-                            <button type="button" class="tool-button ${selectedTitleColor === color ? 'is-selected' : ''}" data-title-color="${color}" style="background:${color}; color:${color === '#ffffff' ? '#0f172a' : '#ffffff'}" title="Title color ${index + 1}">
-                                T
-                            </button>
-                        `).join('')}
-                        <label class="tool-button ${!TITLE_COLORS.includes(selectedTitleColor) ? 'is-selected' : ''} cursor-pointer bg-white" title="Custom board title color">
-                            <span>Custom</span>
-                            <input id="customTitleColorInput" type="color" value="${selectedTitleColor}" class="sr-only">
-                        </label>
-                    </div>
-                </div>
-            </section>
-            <section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700" for="creatorNameInput">Who created this?</label>
+                    <label class="block text-sm font-semibold text-slate-700" for="creatorNameInput">Prepared by <span class="font-normal text-slate-500">(optional)</span></label>
                     <input id="creatorNameInput" type="text" value="${escapeHtml((state.creatorName || '').slice(0, 70))}" maxlength="70" class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" placeholder="Your name">
-                    <p class="mt-1 text-xs text-slate-500">Optional. If filled, it appears as "Prepared by ..." in the PDF.</p>
                 </div>
-                <div class="mt-4">
-                    <h3 class="text-sm font-semibold text-slate-700">Creator name color</h3>
-                    <div class="tool-grid mt-3" aria-label="Creator name color tools">
-                        ${CREATOR_COLORS.map((color, index) => `
-                            <button type="button" class="tool-button ${selectedCreatorColor === color ? 'is-selected' : ''}" data-creator-color="${color}" style="background:${color}; color:${color === '#ffffff' ? '#0f172a' : '#ffffff'}" title="Creator color ${index + 1}">
-                                P
-                            </button>
-                        `).join('')}
-                        <label class="tool-button ${!CREATOR_COLORS.includes(selectedCreatorColor) ? 'is-selected' : ''} cursor-pointer bg-white" title="Custom creator name color">
-                            <span>Custom</span>
-                            <input id="customCreatorColorInput" type="color" value="${selectedCreatorColor}" class="sr-only">
-                        </label>
+            </div>
+            <details class="finalize-colors">
+                <summary>Title and name colors</summary>
+                <div class="finalize-color-settings">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-700">Board title color</h3>
+                        <div class="tool-grid mt-3" aria-label="Board title color tools">
+                            ${CREDIT_COLORS.map((color, index) => `
+                                <button type="button" class="tool-button ${selectedTitleColor === color ? 'is-selected' : ''}" data-title-color="${color}" style="background:${color}; color:${color === '#ffffff' ? '#0f172a' : '#ffffff'}" title="Title color ${index + 1}">
+                                    T
+                                </button>
+                            `).join('')}
+                            <label class="tool-button ${!CREDIT_COLORS.includes(selectedTitleColor) ? 'is-selected' : ''} cursor-pointer bg-white" title="Custom board title color">
+                                <span>Custom</span>
+                                <input id="customTitleColorInput" type="color" value="${selectedTitleColor}" class="sr-only">
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-700">Creator name color</h3>
+                        <div class="tool-grid mt-3" aria-label="Creator name color tools">
+                            ${CREDIT_COLORS.map((color, index) => `
+                                <button type="button" class="tool-button ${selectedCreatorColor === color ? 'is-selected' : ''}" data-creator-color="${color}" style="background:${color}; color:${color === '#ffffff' ? '#0f172a' : '#ffffff'}" title="Creator color ${index + 1}">
+                                    P
+                                </button>
+                            `).join('')}
+                            <label class="tool-button ${!CREDIT_COLORS.includes(selectedCreatorColor) ? 'is-selected' : ''} cursor-pointer bg-white" title="Custom creator name color">
+                                <span>Custom</span>
+                                <input id="customCreatorColorInput" type="color" value="${selectedCreatorColor}" class="sr-only">
+                            </label>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </details>
             <button id="downloadPdfButton" type="button" class="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">Download as PDF</button>
         </div>
     `;
@@ -438,6 +449,7 @@ async function renderToolsForStep(state, version) {
 
 async function renderApp(state) {
     const version = ++renderVersion;
+    elements.workspace.dataset.step = state.currentStep;
     renderStepList(state);
     renderNavigation(state);
     renderPreviewMeta(state);
@@ -616,23 +628,24 @@ function bindNavigation() {
     });
 
     elements.newBoardButton.addEventListener('click', async () => {
-        const firstConfirmed = window.confirm('Your previous board will be completely deleted and a new session will start. Are you sure?');
+        const firstConfirmed = window.confirm('Reset your board? Your current board and uploaded images will be removed from this browser.');
         if (!firstConfirmed) {
             return;
         }
 
-        const secondConfirmed = window.confirm('This action cannot be undone. Start a new board game?');
+        const secondConfirmed = window.confirm('This cannot be undone. Reset the board now?');
         if (!secondConfirmed) {
             return;
         }
 
         await startNewBoardSession();
-        markSaved('New session', 'success');
+        markSaved('Board reset', 'success');
     });
 }
 
 export function initWizard() {
     elements = {
+        workspace: document.querySelector('.creator-workspace'),
         stepList: document.querySelector('#stepList'),
         toolPanel: document.querySelector('#toolPanel'),
         toolPanelTitle: document.querySelector('#toolPanelTitle'),
